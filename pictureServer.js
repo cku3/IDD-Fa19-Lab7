@@ -28,7 +28,7 @@ var SerialPort = require('serialport'); // serial library
 var Readline = SerialPort.parsers.Readline; // read serial data as lines
 //-- Addition:
 var NodeWebcam = require( "node-webcam" );// load the webcam module
-
+var img2ascii = require("image-to-ascii");
 //---------------------- WEBAPP SERVER SETUP ---------------------------------//
 // use express to create the simple webapp
 app.use(express.static('public')); // find pages in public directory
@@ -88,12 +88,20 @@ serial.pipe(parser);
 parser.on('data', function(data) {
   console.log('Data:', data);
   io.emit('server-msg', data);
-  if (data == "dark") {
   var imageName = new Date().toString().replace(/[&\/\\#,+()$~%.'":*?<>{}\s-]/g, '');
   console.log('making a picture with the button press');
   NodeWebcam.capture('public/'+imageName, opts, function( err, data ) {
   io.emit('newPicture',(imageName+'.jpg'));
-  });}
+  img2ascii(('public/'+imageName+'.jpg'), function (err, result) {
+    console.log(result);
+})
+
+//  var TMClient = require('textmagic-rest-client');
+  
+ // var c = new TMClient('username', 'C7XDKZOQZo6HvhJwtUw0MBcslfqwtp4');
+ // c.Messages.send({text: 'test message', phones:'7328824139'}, function(err, res){
+  //  console.log('Messages.send()', err, res);
+ // });
 });
 //----------------------------------------------------------------------------//
 
@@ -136,5 +144,4 @@ io.on('connect', function(socket) {
   socket.on('disconnect', function() {
     console.log('user disconnected');
   });
-});
 //----------------------------------------------------------------------------//
